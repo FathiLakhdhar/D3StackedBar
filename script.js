@@ -32,7 +32,7 @@ var labelColumn = 'State';
 function update(data, keys) {
 
     console.log("keys ", keys);
-    console.log("data", data);
+    //console.log("data", data);
     data.forEach(d => {
         d.total = 0;
         keys.forEach(col => {
@@ -49,11 +49,11 @@ function update(data, keys) {
     var stacks = bars.selectAll("g")
         .data(d3.stack().keys(keys)(data))
         .attr("fill", function (d) { return z(d.key); })
-        .each(d=>{console.log("stackUpdate :", d.key)});
+        //.each(d=>{console.log("stackUpdate :", d.key)});
     
     stacks.enter().append("g")
         .attr("fill", function (d) { return z(d.key); })
-        .each(d=>{console.log("stackEnter :", d.key)});
+        //.each(d=>{console.log("stackEnter :", d.key)});
     
     stacks.exit().remove();
 
@@ -72,10 +72,10 @@ function update(data, keys) {
             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
             tooltip.select("text").text(d[1] - d[0]);
         })    
-        .each(d=>{console.log("Update :", d.data.State)});
+        //.each(d=>{console.log("Update :", d.data.State)});
 
     
-    rect.enter().append("rect")
+    var Enter = rect.enter().append("rect")
         .attr("x", function (d) { return x(d.data.State); })
         .attr("y", function (d) { return y(d[1]); })
         .attr("height", function (d) { return y(d[0]) - y(d[1]); })
@@ -89,8 +89,7 @@ function update(data, keys) {
             tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
             tooltip.select("text").text(d[1] - d[0]);
         })    
-        .each(d=>{console.log("Enter :", d.data.State)})
-
+        //.each(d=>{console.log("Enter :", d.data.State)})
     rect.exit().remove();
 
     axisX.attr("transform", "translate(0," + height + ")").call(d3.axisBottom(x));
@@ -105,6 +104,7 @@ function update(data, keys) {
         .attr("font-weight", "bold")
         .attr("text-anchor", "start");
 
+    legends.selectAll("g").remove();
      var legend = legends.selectAll("g")
         .data(keys.slice().reverse())
         .enter().append("g")
@@ -122,7 +122,6 @@ function update(data, keys) {
         .attr("dy", "0.32em")
         .text(function (d) { return d; });
 
-    legend.exit().remove();
 }
 
 // Prep the tooltip bits, initial display is hidden
@@ -145,20 +144,20 @@ tooltip.append("text")
 
 
 
-var keys = Object.keys(dataState[0]).filter(c => c != labelColumn)
-update(dataState.slice(), keys);
+var Globalkeys = Object.keys(dataState[0]).filter(c => c != labelColumn)
+update(dataState.slice(), Globalkeys.slice());
 
 
 document.getElementById("btn-refresh").addEventListener("click", function () {
     console.log("click")
     let {data, keys} = randomData();
-    update(data, keys);
+    update(data.slice(0, Math.floor(Math.random()* (data.length-1)+1)), keys);
 });
 
 function randomData(){
     let data = [];
-    let keyss = Object.assign(keys);
-    //keyss = keyss.slice(0, Math.floor(Math.random() * keys.length-2)+2)
+    let keyss = Object.assign(Globalkeys);
+    keyss = keyss.slice(Math.floor(Math.random() * 1), Math.floor(Math.random() * (keyss.length-2))+2)
     
     dataState.forEach((d, i)=>{
         data.push({
@@ -173,8 +172,8 @@ function randomData(){
         keys: Object.assign(keyss)
     }
 }
-
+/*
 setInterval(function(){
     let {data, keys} = randomData();
-    update(data.slice(0, Math.floor(Math.random()* (data.length-1)+1)), keys);
-},1000)
+    update(data.slice(0, Math.floor(Math.random() * 5)+data.length-5), keys);
+},1000)*/
