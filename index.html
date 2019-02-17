@@ -6,9 +6,11 @@
         body {
             font-family: 'Open Sans', sans-serif;
         }
+        
         #main {
             width: 960px;
         }
+        
         .axis .domain {
             display: none;
         }
@@ -17,15 +19,26 @@
 
 <body>
 
+    <h1>Angular</h1>
+    <div ng-app="myapp" ng-controller="myCtrl" style="width: 760px;height: 300px;">
+        <d3-stacked-bar data="data" item-label="State"></d3-stacked-bar>
+        <button ng-click="ngrefresh()">ng-refresh</button>
+    </div>
+
+    <h1>Javascript</h1>
+
     <div id="main">
-        <svg width="960" height="500"></svg>
+        <svg id="js" width="760" height="300"></svg>
     </div>
     <div>
         <button id="btn-refresh">refresh</button>
     </div>
+
+    <script src="./angular.min.js"></script>
     <script src="./d3.v5.min.js"></script>
     <script src="./data.js"></script>
-    <script src="./script.js"></script>
+    <!--<script src="./script.js"></script>-->
+    <script src="./ng-app.js"></script>
 
 </body>
 
