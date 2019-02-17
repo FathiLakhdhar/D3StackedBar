@@ -1,7 +1,7 @@
 angular.module("myapp", [])
     .controller("myCtrl", function ($scope) {
         $scope.data = dataState;
-
+        $scope.colors = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"];
         $scope.ngrefresh = function () {
             let data = [];
             let keyss = Object.keys(dataState[0]).filter(c => c != 'State');
@@ -20,7 +20,8 @@ angular.module("myapp", [])
         template: '<svg id="ng"></svg>',
         bindings: {
             data: '<',
-            itemLabel: '@'
+            itemLabel: '@',
+            colors: '<'
         },
         controller: function d3StackedBarController($scope, $element) {
             var self = this;
@@ -57,9 +58,8 @@ angular.module("myapp", [])
                 .rangeRound([height, 0]);
 
             // set the colors
-            var z = d3.scaleOrdinal()
-                .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
+            var defaultColors = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"];
+                
 
             // Prep the tooltip bits, initial display is hidden
             var tooltip = svg.append("g")
@@ -82,6 +82,8 @@ angular.module("myapp", [])
 
             self.$onInit = function () {
                 console.log("--- Init ---");
+                self.itemLabel = self.itemLabel || 'label';
+                self.colors = self.colors || defaultColors;
                 console.log(self.data);
                 console.log(self.itemLabel);
             }
@@ -95,7 +97,7 @@ angular.module("myapp", [])
 
             self.update = function (data) {
 
-                var keys = Object.keys(Object.assign({}, data[0])).filter(c => c != self.itemLabel && c != 'total');
+                var keys = Object.keys(data[0]).filter(c => c != self.itemLabel && c != 'total');
 
                 console.log("keys ", keys);
                 //console.log("data", data);
@@ -108,24 +110,24 @@ angular.module("myapp", [])
 
 
                 //data.sort(function (a, b) { return b.total - a.total; });
-                x.domain(data.map(function (d) { return d.State; }));
+                x.domain(data.map(function (d) { return d[self.itemLabel]; }));
                 y.domain([0, d3.max(data, function (d) { return d.total; })]).nice();
-                z.domain(keys);
+                var color = d3.scaleOrdinal().range(self.colors).domain(keys);
 
                 var stacks = bars.selectAll("g")
                     .data(d3.stack().keys(keys)(data))
-                    .attr("fill", function (d) { return z(d.key); })
+                    .attr("fill", function (d) { return color(d.key); })
                 //.each(d=>{console.log("stackUpdate :", d.key)});
 
                 stacks.enter().append("g")
-                    .attr("fill", function (d) { return z(d.key); })
+                    .attr("fill", function (d) { return color(d.key); })
                 //.each(d=>{console.log("stackEnter :", d.key)});
 
                 stacks.exit().remove();
 
                 var rect = bars.selectAll("g").selectAll("rect")
                     .data(function (d) { return d; })
-                    .attr("x", function (d) { return x(d.data.State); })
+                    .attr("x", function (d) { return x(d.data[self.itemLabel]); })
                     .attr("y", function (d) { return y(d[1]); })
                     .attr("height", function (d) { return y(d[0]) - y(d[1]); })
                     .attr("width", x.bandwidth())
@@ -138,11 +140,11 @@ angular.module("myapp", [])
                         tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                         tooltip.select("text").text(d[1] - d[0]);
                     })
-                //.each(d=>{console.log("Update :", d.data.State)});
+                //.each(d=>{console.log("Update :", d.data[self.itemLabel])});
 
 
                 var Enter = rect.enter().append("rect")
-                    .attr("x", function (d) { return x(d.data.State); })
+                    .attr("x", function (d) { return x(d.data[self.itemLabel]); })
                     .attr("y", function (d) { return y(d[1]); })
                     .attr("height", function (d) { return y(d[0]) - y(d[1]); })
                     .attr("width", x.bandwidth())
@@ -155,7 +157,7 @@ angular.module("myapp", [])
                         tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                         tooltip.select("text").text(d[1] - d[0]);
                     })
-                //.each(d=>{console.log("Enter :", d.data.State)})
+                //.each(d=>{console.log("Enter :", d.data[self.itemLabel])})
                 rect.exit().remove();
 
                 axisX.attr("transform", "translate(0," + height + ")").call(d3.axisBottom(x));
@@ -180,7 +182,7 @@ angular.module("myapp", [])
                     .attr("x", width - 5 + padding.left)
                     .attr("width", 19)
                     .attr("height", 19)
-                    .attr("fill", z);
+                    .attr("fill", color);
 
                 legend.append("text")
                     .attr("x", width - 10 + padding.left)
